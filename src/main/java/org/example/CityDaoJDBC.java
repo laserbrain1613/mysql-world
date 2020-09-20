@@ -102,8 +102,8 @@ public class CityDaoJDBC implements CityDao {
     public City add(City city) {
         try {
             Connection connection = MySQLConnection.mysqlGetConnection();
-            PreparedStatement preparedStatement = connection.prepareStatement("INSERT into city VALUES (?,?,?,?,?)");
-            preparedStatement.setInt(1, city.getId());
+            PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO city VALUES (?,?,?,?,?)");
+            preparedStatement.setInt(1, city.getId()); // ID is not auto-incremented
             preparedStatement.setString(2, city.getName());
             preparedStatement.setString(3, city.getCountryCode());
             preparedStatement.setString(4, city.getDistrict());
@@ -112,27 +112,43 @@ public class CityDaoJDBC implements CityDao {
         } catch (SQLException | MySQLConnectionException e) {
             e.printStackTrace();
         }
-        return city;
+        return findById(city.getId());
     }
 
     @Override
     public City update(City city) {
-        return null;
+        try {
+            Connection connection = MySQLConnection.mysqlGetConnection();
+            PreparedStatement preparedStatement = connection.prepareStatement(
+                    "UPDATE city SET " +
+                            "name = ?, " +
+                            "countrycode = ?, " +
+                            "district = ?, " +
+                            "population = ? " +
+                            "WHERE id = ?");
+            preparedStatement.setString(1, city.getName());
+            preparedStatement.setString(2, city.getCountryCode());
+            preparedStatement.setString(3, city.getDistrict());
+            preparedStatement.setInt(4, city.getPopulation());
+            preparedStatement.setInt(5, city.getId());
+            preparedStatement.executeUpdate();
+        } catch (SQLException | MySQLConnectionException e) {
+            e.printStackTrace();
+        }
+        return findById(city.getId());
     }
 
     @Override
     public int delete(City city) {
-        int result = 0;
         try {
             Connection connection = MySQLConnection.mysqlGetConnection();
             PreparedStatement preparedStatement = connection.prepareStatement("DELETE FROM city WHERE id = ?");
-
-
+            preparedStatement.setInt(1, city.getId());
+            return preparedStatement.executeUpdate();
         } catch (SQLException | MySQLConnectionException e) {
             e.printStackTrace();
         }
-
-        return result;
+        return 0; // Failed to delete city
     }
 
 }
